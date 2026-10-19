@@ -3,6 +3,9 @@
 
 #include "window.hpp"
 
+SDL_Window* WindowSDL3::getWindow() {
+    return window;
+}
 bool WindowSDL3::create(int width, int height, const std::string &title)
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -10,7 +13,7 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return false;
     }
-
+   
     if (!SDL_CreateWindowAndRenderer(title.c_str(), width, height, SDL_WINDOW_RESIZABLE, &window, &renderer))
     {
         std::cerr << "Window/Renderer Creation Error: " << SDL_GetError() << std::endl;
@@ -32,9 +35,16 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
 float WindowSDL3::calcElapsed()
 {
     Uint64 currentTime = SDL_GetTicks();
+    int framespersec = 1;
+    float frametime = 0;
+    while (frametime < (float)1 / (float)(framespersec)) {
+        frametime += (float)SDL_GetTicks()/1000.0f;
+   }
     float elapsed = (currentTime - lastTime) / 1000.0f;
     lastTime = currentTime;
-
+    std::cout << elapsed;
+    frametime = 0;
+    
     return elapsed;
 }
 
@@ -78,18 +88,17 @@ void *WindowSDL3::getHandle()
 }
 
 void WindowSDL3::beginFrame(int screen, int colorR, int colorG, int colorB)
-{
+{//RENDERER IS GONE MUEHEHEHEHE
     running = !shouldCloseFlag;
 
-    SDL_SetRenderDrawColor(renderer, colorR, colorG, colorB, 255);
-    SDL_RenderClear(renderer);
+    
 
     hasFrameBegan = true;
 }
 
 void WindowSDL3::endFrame(bool shouldFlush)
-{
-    SDL_RenderPresent(renderer);
+{//MUEHEHEHEHE
+    
 
     hasFrameBegan = false;
 }

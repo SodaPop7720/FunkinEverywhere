@@ -11,13 +11,13 @@
 static std::vector<std::uint8_t> read_spv(const char* path) { //we are going to output a uint8_t vector such that it can be read by cpu then passed into gpu so it has the shader data we will use. Only to have a function thats used, not a called for api public.
 	std::ifstream file(path, std::ios::binary | std::ios::ate); //open the file we find at path (spv), reading it in binary and starting at the end. Since we start at the end, when we get position, we know the size.
 	if (!file) {
-		throw std::runtime_error(std::string("Cannot open shader file: ") + path); //checks if the file works opening exist etc.
+		std::cout << "Cannot open shader file"; //checks if the file works opening exist etc.
 	}
 	auto size = static_cast<std::streamsize>(file.tellg()); //Get size since we at the end bc we get our position. we turn it into stream size bc otherwise it might be a strange datatype. idk .-.
 	file.seekg(0, std::ios::beg);  //we move to the start woohoo
 	std::vector<std::uint8_t> data(static_cast<std::size_t>(size)); // we make the vector we will return with exactly the amount of elements we need. They all empty and we will write into them.
 	if (!file.read(reinterpret_cast<char*>(data.data()), size)) { //read the file and place the data inside our uint8_t vector, treating the pointer (data.data()) as char*, it's compatible since they the same size and behave the same, and we reinterpret since read expects a c char pointer.
-		throw std::runtime_error(std::string("Failed to read shader file: ") + path);
+		std::cout << "Failed to read shader file: " ;
 	}
 	return data; //we give back the uint8_t vector
 

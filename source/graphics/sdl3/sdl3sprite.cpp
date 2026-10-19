@@ -6,35 +6,46 @@
 #include "../../rendering/sdl3/window.hpp"
 #include "../../rendering/window.hpp"
 #include "sdl3sprite.hpp"
+#include "../cppanimate.hpp"
 #include "../../util/coolutil.hpp"
+#include "../spritemanager.hpp"
 
 void SDL3Sprite::create(const std::string& path, const std::string& type)
 {
     auto mods = listDirectory("mods");
-    modName = (mods && !mods -> empty()) ? (*mods)[0] : "none";
+    modName = (mods && !mods->empty()) ? (*mods)[0] : "none";
 
-	if(type != "animateatlas" && type != "multianimate") 
-	{
-        std::string assetPath = fileExists("mods/" + modName + "/" + path + ".png") ? "mods/" + modName + "/" : "assets/";
-		texture = IMG_LoadTexture(static_cast<SDL_Renderer*>(globalWindow -> getRenderer()), (assetPath + path + ".png").c_str());
-		if (type == "sparrow") loadAtlas(assetPath + path + ".xml");
-	}
-
-	SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    if (type != "animateatlas" && type != "multianimate")
+    {
+        std::string assetPath = fileExists("mods/" + modName + "/" + path + ".png") ? "mods/" + modName + "/" : "mods/" + modName + "/" + "assets/";
+        texture = IMG_LoadTexture(static_cast<SDL_Renderer*>(globalWindow->getRenderer()), (assetPath + path + ".png").c_str());
+        if (type == "sparrow") 
+            loadAtlas(assetPath + path + ".xml");
+        loadGraphic(assetPath + path + ".png", gputext, sizex, sizey);
+        if (!gputext) {
+            std::cout << "TEXTURE IS WRONG SINCE HERE!";
+        }
+        std::cout << "\n\n Texture size of " + path + ".png: " << "\n\n x:" << sizex << "\n\n y:"  << sizey;
+        
+    }
+   
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
 }
-
+SDL_GPUTexture* SDL3Sprite::gettexture() {
+    return gputext;
+}
 SDL3Sprite::SDL3Sprite(const std::string& path, const std::string& type)
 {
-	spriteType = type;
-	create(path, type);
+    spriteType = type;
+    create(path, type);
 }
 
-void SDL3Sprite::render()
-{
-    if (!texture) return;
 
+spritedata SDL3Sprite::getspritedata()
+{
     float texWidth, texHeight;
     SDL_GetTextureSize(texture, &texWidth, &texHeight);
+
 
     if (spriteType == "sparrow")
     {
@@ -52,6 +63,7 @@ void SDL3Sprite::render()
 
         stuff.width = frameWidth;
         stuff.height = frameHeight;
+
     }
     else
     {
@@ -64,6 +76,7 @@ void SDL3Sprite::render()
         frameY = 0;
         stuff.width = frameWidth = texWidth;
         stuff.height = frameHeight = texHeight;
+
     }
 
     drect.x = (stuff.x - frameX) * stuff.scaleX;
@@ -71,28 +84,28 @@ void SDL3Sprite::render()
     drect.w = srect.w * stuff.scaleX;
     drect.h = srect.h * stuff.scaleY;
 
-    float u0 = srect.x / texWidth;
-    float v0 = srect.y / texHeight;
+    float u0 = (srect.x / texWidth);
+    float v0 = 1 - ((srect.y + frameHeight) / texHeight); //frameHeight is the only constant  i can see that don't vary drastically with piexel height n shit 
 
-    float u1 = (srect.x + srect.w) / texWidth;
-    float v1 = (srect.y + srect.h) / texHeight;
-
-    SDL_Vertex vertices[4] = {
-        { {drect.x + (stuff.skewX / 2), drect.y + (stuff.skewY / 2)}, {1.0f, 1.0f, 1.0f, 1.0f}, {u0, v0} }, // tl
-        { {(drect.x + drect.w) + (stuff.skewX / 2), drect.y - (stuff.skewY / 2)}, {1.0f, 1.0f, 1.0f, 1.0f}, {u1, v0} }, // tr
-        { {(drect.x + drect.w) - (stuff.skewX / 2), (drect.y + drect.h) - (stuff.skewY / 2)}, {1.0f, 1.0f, 1.0f, 1.0f}, {u1, v1} }, // br
-        { {drect.x - (stuff.skewX / 2), (drect.y + drect.h) + (stuff.skewY / 2)}, {1.0f, 1.0f, 1.0f, 1.0f}, {u0, v1} } // bl
-    };
-
-    int daindices[6] = {0, 1, 2, 2, 3, 0};
-
-    SDL_FRect fdrect = {drect.x, drect.y, drect.w, drect.h};
-    SDL_FRect fsrect = {srect.x, srect.y, srect.w, srect.h};
-
-    SDL_RenderGeometry(static_cast<SDL_Renderer*>(globalWindow -> getRenderer()), texture, vertices, 4, daindices, 6);
+    float u1 = (srect.w) / texWidth;
+    float v1 = (srect.h*1.01) / texHeight;
+    if (!gputext) {
+        std::cout << "MANGLED FROM ORIGIN.";
+    }
+    
+    spritedata spritedata;
+    spritedata.s_uv = { u0, v0 };  
+    spritedata.s_size = { u1, v1 };
+    spritedata.scalex = drect.w;
+    spritedata.scaley = drect.h;
+    spritedata.xpos = drect.x;
+    
+    spritedata.ypos = -drect.y + stuff.skewY; //miracle. i should prolly debug it more
+    std::cout << "\n\n" << curFrame << "\n\n";
+    return spritedata;
 }
 
 SDL3Sprite::~SDL3Sprite()
 {
-	SDL_DestroyTexture(texture);
+    SDL_DestroyTexture(texture);
 }

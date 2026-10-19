@@ -5,14 +5,20 @@
 
 #include "../basesprite.hpp"
 
-class SDL3Sprite : public BaseSprite 
-{
-    public:
-        SDL3Sprite(const std::string& path, const std::string& type = "none");
-        ~SDL3Sprite() override;
 
+class SDL3Sprite : public BaseSprite
+{
+public:
+    SDL3Sprite(const std::string& path, const std::string& type = "none");
+    ~SDL3Sprite() override;
+    SDL_GPUTexture* gettexture();
         void create(const std::string& path, const std::string& type) override;
-        void render() override;
-    private:
-        SDL_Texture *texture = nullptr;
+     spritedata getspritedata() override;
+       
+private:
+        SDL_Texture* texture = nullptr;
+        SDL_GPUTexture* gputext = nullptr;
+        int sizex = 0;
+        int sizey = 0;
+        
 };

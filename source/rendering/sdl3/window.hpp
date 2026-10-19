@@ -11,11 +11,11 @@ class WindowSDL3 : public WindowFE
     public:
         bool debugMode;
         bool running;
-
+      
         bool create(int width, int height, const std::string &title);
         float calcElapsed();
         void destroy();
-
+        SDL_Window* getWindow();
         bool shouldClose();
         void pollEvents();
         void swapBuffers();

@@ -7,6 +7,28 @@
 
 bool WindowSDL3::create(int width, int height, const std::string &title)
 {
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, title.c_str());
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, true);
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
+
+    window = SDL_CreateWindowWithProperties(props);
+    SDL_DestroyProperties(props);
+
+    renderer = SDL_CreateRenderer(window, nullptr);
+
+    if (!window || !renderer)
+    {
+        std::cerr << "Window/Renderer Creation Error: " << SDL_GetError() << std::endl;
+
+        SDL_Quit();
+        return false;
+    }
+
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -19,15 +41,6 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
         return false;
     }
 
-    if (!SDL_CreateWindowAndRenderer(title.c_str(), width, height, SDL_WINDOW_RESIZABLE, &window, &renderer))
-    {
-        std::cerr << "Window/Renderer Creation Error: " << SDL_GetError() << std::endl;
-
-        SDL_Quit();
-        return false;
-    }
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
     this -> width = width;
     this -> height = height;
     this -> pixelDensity = SDL_GetWindowPixelDensity(window);
@@ -36,6 +49,7 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
     SDL_SetRenderVSync(renderer, 1);
     
     initInput();
+    SDL_ShowWindow(window);
 
     return true;
 }

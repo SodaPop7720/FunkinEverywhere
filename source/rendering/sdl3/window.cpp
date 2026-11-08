@@ -26,6 +26,7 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
         SDL_Quit();
         return false;
     }
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
     this -> width = width;
     this -> height = height;

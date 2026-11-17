@@ -192,6 +192,77 @@ void SDL3Sprite::render()
     SDL_RenderGeometry(static_cast<SDL_Renderer*>(globalWindow -> getRenderer()), texture, vertices, 4, daindices, 6);
 }
 
+
+void SDL3Sprite::visitSymbolPieces(const std::string& symbolName, int frame, const AffineMatrix& parentMatrix, const SpritemapStyle& parentStyle, int recursionDepth,
+    const std::function<void(const std::string&, const SpritemapPiece&, const AffineMatrix&, const SpritemapStyle&)>& callback) const
+{
+    if (recursionDepth >= 32) return;
+
+    auto symbolIt = spritemapData.symbols.find(symbolName);
+    if (symbolIt == spritemapData.symbols.end()) return;
+
+    const SpritemapSymbol& symbol = symbolIt -> second;
+
+    for (int i = static_cast<int>(symbol.layers.size()) - 1; i >= 0; --i)
+    {
+        const SpritemapKeyframe* keyframe = symbol.getKeyframe(i, frame);
+        if (!keyframe) continue;
+
+        SpritemapStyle frameStyle = parentStyle;
+
+        if (keyframe -> hasBlend)
+        {
+            frameStyle.blend = keyframe -> blend;
+            frameStyle.hasBlend = true;
+        }
+
+        for (const SpritemapElement& element : keyframe -> elements)
+        {
+            if (element.isAtlasSprite)
+            {
+                const auto& sprite = element.asi;
+
+                auto pieceIt = spritemapData.atlas.find(sprite.pieceName);
+                if (pieceIt == spritemapData.atlas.end()) continue;
+
+                const AffineMatrix matrix = composeMatrix(parentMatrix, sprite.mx);
+
+                callback(sprite.pieceName, pieceIt -> second, matrix, frameStyle);
+                continue;
+            }
+
+            const auto& instance = element.si;
+
+            auto childIt = spritemapData.symbols.find(instance.symbolName);
+            if (childIt == spritemapData.symbols.end()) continue;
+
+            const SpritemapSymbol& child = childIt -> second;
+            const int duration = child.duration();
+
+            if (duration <= 0) continue;
+
+            int childFrame = instance.firstFrame + (frame - keyframe->index);
+
+            const bool loops = instance.loopType == "LOOP" || instance.loopType == "loop" || instance.loopType == "1";
+
+            if (loops)
+            {
+                childFrame %= duration;
+                if (childFrame < 0) childFrame += duration;
+            }
+            else
+            {
+                childFrame = std::clamp(childFrame, 0, duration - 1);
+            }
+
+            const AffineMatrix childMatrix = composeMatrix(parentMatrix, instance.mx);
+            const SpritemapStyle childStyle = combineStyles(frameStyle, instance.style);
+
+            visitSymbolPieces(instance.symbolName, childFrame, childMatrix, childStyle, recursionDepth + 1, callback);
+        }
+    }
+}
+
 void SDL3Sprite::renderSpritemap(int frame)
 {
     if (spritemapData.rootSymbolName.empty()) return;
@@ -209,89 +280,33 @@ void SDL3Sprite::renderSpritemap(int frame)
 
     bool hasBounds = false;
 
-    // I'm prolly gonna rewrite this as its very messy and redundant
-    std::function<void(const std::string&, int, const AffineMatrix&, int)> calculateBounds;
-
-    calculateBounds = [&](const std::string& symbolName, int symbolFrame, const AffineMatrix& parentMatrix, int recursionDepth)
-    {
-        if (recursionDepth >= 32) return;
-
-        auto symbolIt = spritemapData.symbols.find(symbolName);
-        if (symbolIt == spritemapData.symbols.end()) return;
-
-        const SpritemapSymbol& symbol = symbolIt->second;
-
-        for (int layerIndex = static_cast<int>(symbol.layers.size()) - 1; layerIndex >= 0; --layerIndex)
-        {
-            const SpritemapKeyframe* keyframe = symbol.getKeyframe(layerIndex, symbolFrame);
-
-            if (!keyframe) continue;
-
-            for (const SpritemapElement& element : keyframe -> elements)
-            {
-                if (element.isAtlasSprite)
-                {
-                    const AffineMatrix matrix = composeMatrix(parentMatrix, element.asi.mx);
-                    auto pieceIt = spritemapData.atlas.find(element.asi.pieceName);
-                    if (pieceIt == spritemapData.atlas.end()) continue;
-
-                    const SpritemapPiece& piece = pieceIt -> second;
-
-                    const float width = static_cast<float>(piece.rotated ? piece.h : piece.w);
-                    const float height = static_cast<float>(piece.rotated ? piece.w : piece.h);
-                    if (width <= 0.0f || height <= 0.0f) continue;
-
-                    const float px[4] = {0.0f, width, width, 0.0f};
-                    const float py[4] = {0.0f, 0.0f, height, height};
-
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        const float x = matrix.a * px[i] + matrix.c * py[i] + matrix.tx;
-                        const float y = matrix.b * px[i] + matrix.d * py[i] + matrix.ty;
-
-                        minX = std::min(minX, x);
-                        minY = std::min(minY, y);
-                        maxX = std::max(maxX, x);
-                        maxY = std::max(maxY, y);
-
-                        hasBounds = true;
-                    }
-                }
-                else
-                {
-                    auto childIt = spritemapData.symbols.find(element.si.symbolName);
-                    if (childIt == spritemapData.symbols.end()) continue;
-
-                    const SpritemapSymbol& child = childIt->second;
-                    const int childDuration = child.duration();
-                    if (childDuration <= 0) continue;
-
-                    AffineMatrix childMatrix = composeMatrix(parentMatrix, element.si.mx);
-                    int childFrame = element.si.firstFrame + (symbolFrame - keyframe -> index);
-
-                    const std::string& loopType = element.si.loopType;
-                    const bool loops = loopType == "LOOP" || loopType == "loop" || loopType == "1";
-
-                    if (loops)
-                    {
-                        childFrame %= childDuration;
-                        if (childFrame < 0) childFrame += childDuration;
-                    }
-                    else
-                    {
-                        if (childFrame < 0) childFrame = 0;
-                        if (childFrame >= childDuration) childFrame = childDuration - 1;
-                    }
-
-                    calculateBounds(element.si.symbolName, childFrame, childMatrix, recursionDepth + 1);
-                }
-            }
-        }
-    };
-
     for (int i = 0; i < rootDuration; ++i)
     {
-        calculateBounds(spritemapData.rootSymbolName, i, AffineMatrix{}, 0);
+        visitSymbolPieces(spritemapData.rootSymbolName, i, AffineMatrix{}, SpritemapStyle{}, 0,
+            [&](const std::string&, const SpritemapPiece& piece, const AffineMatrix& matrix, const SpritemapStyle&)
+            {
+                const float width = static_cast<float>(piece.rotated ? piece.h : piece.w);
+                const float height = static_cast<float>(piece.rotated ? piece.w : piece.h);
+
+                if (width <= 0.0f || height <= 0.0f) return;
+
+                const float px[] = {0.0f, width, width, 0.0f};
+                const float py[] = {0.0f, 0.0f, height, height};
+
+                for (int j = 0; j < 4; ++j)
+                {
+                    const float x = matrix.a * px[j] + matrix.c * py[j] + matrix.tx;
+                    const float y = matrix.b * px[j] + matrix.d * py[j] + matrix.ty;
+
+                    minX = std::min(minX, x);
+                    minY = std::min(minY, y);
+                    maxX = std::max(maxX, x);
+                    maxY = std::max(maxY, y);
+
+                    hasBounds = true;
+                }
+            }
+        );
     }
 
     if (!hasBounds) return;
@@ -302,29 +317,22 @@ void SDL3Sprite::renderSpritemap(int frame)
     const float rad = std::acos(-1.0f) / 180.0f;
 
     const float rotation = stuff.angle * rad;
-    const float skewXRad = stuff.skewX * rad;
-    const float skewYRad = stuff.skewY * rad;
+    const float skewX = std::tan(stuff.skewX * rad);
+    const float skewY = std::tan(stuff.skewY * rad);
 
     const float cosR = std::cos(rotation);
     const float sinR = std::sin(rotation);
 
-    const float tanX = std::tan(skewXRad);
-    const float tanY = std::tan(skewYRad);
-
-    const float scaleX = stuff.scaleX;
-    const float scaleY = stuff.scaleY;
-
     AffineMatrix root;
 
-    root.a = (cosR - sinR * tanY) * scaleX;
-    root.b = (sinR + cosR * tanY) * scaleX;
-    root.c = (cosR * tanX - sinR) * scaleY;
-    root.d = (sinR * tanX + cosR) * scaleY;
+    root.a = (cosR - sinR * skewY) * stuff.scaleX;
+    root.b = (sinR + cosR * skewY) * stuff.scaleX;
+    root.c = (cosR * skewX - sinR) * stuff.scaleY;
+    root.d = (sinR * skewX + cosR) * stuff.scaleY;
 
     root.tx = stuff.x + (centerX - minX) - root.a * centerX - root.c * centerY;
     root.ty = stuff.y + (centerY - minY) - root.b * centerX - root.d * centerY;
 
-    // thanks google for this code lol
     SDL_Renderer* renderer = static_cast<SDL_Renderer*>(globalWindow -> getRenderer());
     SDL_Texture* previousTarget = SDL_GetRenderTarget(renderer);
 
@@ -396,66 +404,14 @@ void SDL3Sprite::renderSpritemap(int frame)
 
 void SDL3Sprite::renderSymbol(const std::string& symbolName, int frame, const AffineMatrix& parentMatrix, const SpritemapStyle& parentStyle, int recursionDepth)
 {
-    if (recursionDepth >= 32) return;
-
-    auto symbolIt = spritemapData.symbols.find(symbolName);
-    if (symbolIt == spritemapData.symbols.end()) return;
-
-    const SpritemapSymbol& symbol = symbolIt -> second;
-
-    for (int layerIndex = static_cast<int>(symbol.layers.size()) - 1; layerIndex >= 0; --layerIndex)
-    {
-        const SpritemapKeyframe* keyframe = symbol.getKeyframe(layerIndex, frame);
-        if (!keyframe) continue;
-
-        SpritemapStyle frameStyle = parentStyle;
-
-        if (keyframe -> hasBlend)
+    visitSymbolPieces(symbolName, frame, parentMatrix, parentStyle, recursionDepth,
+        [&](const std::string& pieceName, const SpritemapPiece&, const AffineMatrix& matrix, const SpritemapStyle& style)
         {
-            frameStyle.blend = keyframe -> blend;
-            frameStyle.hasBlend = true;
+            renderPiece(pieceName, matrix, style);
         }
-
-        for (const SpritemapElement& element : keyframe -> elements)
-        {
-            if (element.isAtlasSprite)
-            {
-                const AffineMatrix matrix = composeMatrix(parentMatrix, element.asi.mx);
-                renderPiece(element.asi.pieceName, matrix, frameStyle);
-            }
-            else
-            {
-                auto childIt = spritemapData.symbols.find(element.si.symbolName);
-                if (childIt == spritemapData.symbols.end()) continue;
-
-                const SpritemapSymbol& child = childIt -> second;
-                const int childDuration = child.duration();
-                if (childDuration <= 0) continue;
-
-                AffineMatrix childMatrix = composeMatrix(parentMatrix, element.si.mx);
-                const SpritemapStyle childStyle = combineStyles(frameStyle, element.si.style);
-
-                int childFrame = element.si.firstFrame + (frame - keyframe -> index);
-
-                const std::string& loopType = element.si.loopType;
-                const bool loops = loopType == "LOOP" || loopType == "loop" || loopType == "1";
-
-                if (loops)
-                {
-                    childFrame %= childDuration;
-                    if (childFrame < 0) childFrame += childDuration;
-                }
-                else
-                {
-                    if (childFrame < 0) childFrame = 0;
-                    if (childFrame >= childDuration) childFrame = childDuration - 1;
-                }
-
-                renderSymbol(element.si.symbolName, childFrame, childMatrix, childStyle, recursionDepth + 1);
-            }
-        }
-    }
+    );
 }
+
 
 void SDL3Sprite::renderPiece(const std::string& pieceName, const AffineMatrix& matrix, const SpritemapStyle& style)
 {
@@ -474,17 +430,19 @@ void SDL3Sprite::renderPiece(const std::string& pieceName, const AffineMatrix& m
     const float width = static_cast<float>(piece.rotated ? piece.h : piece.w);
     const float height = static_cast<float>(piece.rotated ? piece.w : piece.h);
 
-    SDL_FPoint positions[4] = {
-        {matrix.a * 0.0f + matrix.c * 0.0f + matrix.tx, matrix.b * 0.0f + matrix.d * 0.0f + matrix.ty},
-        {matrix.a * width + matrix.c * 0.0f + matrix.tx, matrix.b * width + matrix.d * 0.0f + matrix.ty},
-        {matrix.a * width + matrix.c * height + matrix.tx, matrix.b * width + matrix.d * height + matrix.ty},
-        {matrix.a * 0.0f + matrix.c * height + matrix.tx, matrix.b * 0.0f + matrix.d * height + matrix.ty}
+    auto transformPoint = [&](float x, float y) -> SDL_FPoint {return {matrix.a * x + matrix.c * y + matrix.tx, matrix.b * x + matrix.d * y + matrix.ty};};
+
+    SDL_FPoint positions[] = {
+        transformPoint(0.0f, 0.0f),
+        transformPoint(width, 0.0f),
+        transformPoint(width, height),
+        transformPoint(0.0f, height)
     };
 
-    float left = static_cast<float>(piece.x) / texWidth;
-    float right = static_cast<float>(piece.x + piece.w) / texWidth;
-    float top = static_cast<float>(piece.y) / texHeight;
-    float bottom = static_cast<float>(piece.y + piece.h) / texHeight;
+    const float left = static_cast<float>(piece.x) / texWidth;
+    const float right = static_cast<float>(piece.x + piece.w) / texWidth;
+    const float top = static_cast<float>(piece.y) / texHeight;
+    const float bottom = static_cast<float>(piece.y + piece.h) / texHeight;
 
     SDL_FPoint uv[4];
 

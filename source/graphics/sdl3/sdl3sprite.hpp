@@ -1,6 +1,9 @@
 #pragma once
+
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+
+#include <functional>
 #include <string>
 
 #include "../basesprite.hpp"
@@ -23,4 +26,7 @@ class SDL3Sprite : public BaseSprite
         SDL_Texture* spritemapRenderTexture = nullptr;
         int spritemapRenderWidth = 0;
         int spritemapRenderHeight = 0;
+
+        void visitSymbolPieces(const std::string& symbolName, int frame, const AffineMatrix& parentMatrix, const SpritemapStyle& parentStyle, int recursionDepth,
+            const std::function<void(const std::string&, const SpritemapPiece&, const AffineMatrix&, const SpritemapStyle&)>& callback) const;
 };

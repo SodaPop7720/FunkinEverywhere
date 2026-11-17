@@ -9,11 +9,11 @@ Conductor conductor;
 void Conductor::setBPM(float newbpm)
 {
     swagTimer = 0.0f;
+    curStepFloat = 0.0f;
+
     bpm = newbpm;
 
     if (bpm <= 10.0f) bpm = 10.0f;
-
-    curStepFloat = 0.0f;
 
     curStep = 0;
     curBeat = 0;

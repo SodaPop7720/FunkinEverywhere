@@ -90,7 +90,8 @@ SDL3Sprite::SDL3Sprite(const std::string& path, const std::string& type)
 void SDL3Sprite::render()
 {
     if (!stuff.visible) return;
-    if (!texture) return;
+    BaseSprite::render();
+    if (!renderSelf || !texture) return;
 
     if (spriteType == "animateatlas" || spriteType == "multianimate")
     {

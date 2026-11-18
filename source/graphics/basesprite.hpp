@@ -194,6 +194,8 @@ class SpriteRenderParams
         std::string blend = "none";
 };
 
+class FunkinSprite;
+
 class BaseSprite
 {
     protected:
@@ -211,6 +213,9 @@ class BaseSprite
         float animFPS = 24.0f;
         bool animLoop = true;
 
+        std::vector<std::unique_ptr<FunkinSprite>> children;
+        bool renderSelf = true;
+
     public:
         BaseSprite() = default;
         virtual void create(const std::string& path, const std::string& type = "none") = 0;
@@ -227,6 +232,7 @@ class BaseSprite
 
         float getWidth();
         float getHeight();
+        float getAtlasMaxHeight() const;
 
         void update(float elapsed);
         virtual void render();
@@ -244,8 +250,18 @@ class BaseSprite
 
         void playAnim(const std::string& name);
 
+        std::vector<std::string> getAtlasFrameNames() const;
+
         void drawSymbol(const std::string& symbolName, int logicalFrame, const AffineMatrix& parentMX, float depth, int recursionDepth = 0) const;
         void drawPiece(const std::string& pieceName, const AffineMatrix& mx, float depth) const;
+
+        void addChild(std::unique_ptr<FunkinSprite> child);
+        void clearChildren();
+
+        void setRenderSelf(bool value)
+        {
+            renderSelf = value;
+        }
 };
 
 class FunkinSprite
@@ -257,6 +273,7 @@ class FunkinSprite
 
     public:
         FunkinSprite(const std::string& path, const std::string& type = "none");
+        virtual ~FunkinSprite() = default;
 
         void update(float elapsed);
         void render();
@@ -268,8 +285,16 @@ class FunkinSprite
 
         void playAnim(const std::string& name);
 
+        std::vector<std::string> getAtlasFrameNames() const;
+
         SpriteRenderParams& getParams();
 
         float getWidth();
         float getHeight();
+        float getAtlasMaxHeight() const;
+
+        void addChild(std::unique_ptr<FunkinSprite> child);
+        void clearChildren();
+
+        void setRenderSelf(bool value);
 };

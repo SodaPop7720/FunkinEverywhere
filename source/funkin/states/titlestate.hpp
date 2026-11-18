@@ -1,6 +1,6 @@
 #include "basestate.hpp"
-#include "../../audio/basesound.hpp"
-#include "../../graphics/basesprite.hpp"
+#include "../import.hpp"
+#include "../graphics/atlastext.hpp"
 
 class TitleState : public BaseState 
 {

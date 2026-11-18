@@ -789,36 +789,55 @@ void BaseSprite::playAnim(const std::string& name)
     }
 }
 
+std::vector<std::string> BaseSprite::getAtlasFrameNames() const
+{
+    std::vector<std::string> names;
+
+    for (const Animation& anim : anims)
+    {
+        for (const AtlasFrame& frame : anim.frames)
+        {
+            names.push_back(frame.name);
+        }
+    }
+
+    return names;
+}
+
 void BaseSprite::update(float elapsed)
 {
-    if (!animPlaying) return;
-    if (curAnim < 0 || curAnim >= static_cast<int>(anims.size())) return;
-
-    Animation& anim = anims[curAnim];
-    if (anim.frames.empty()) return;
-
-    animTimer += elapsed;
-    float frameTime = 1.0f / animFPS;
-
-    while (animTimer >= frameTime)
+    if (animPlaying && curAnim >= 0 && curAnim < static_cast<int>(anims.size()))
     {
-        animTimer -= frameTime;
-        curFrame += 1;
+        Animation& anim = anims[curAnim];
 
-        if (curFrame >= static_cast<int>(anim.frames.size()))
+        if (!anim.frames.empty())
         {
-            if (animLoop)
+            animTimer += elapsed;
+            float frameTime = 1.0f / animFPS;
+
+            while (animTimer >= frameTime)
             {
-                curFrame = 0;
-            }
-            else
-            {
-                curFrame = anim.frames.size() - 1;
-                animPlaying = false;
-                break;
+                animTimer -= frameTime;
+                curFrame++;
+
+                if (curFrame >= static_cast<int>(anim.frames.size()))
+                {
+                    if (animLoop)
+                    {
+                        curFrame = 0;
+                    }
+                    else
+                    {
+                        curFrame = static_cast<int>(anim.frames.size()) - 1;
+                        animPlaying = false;
+                        break;
+                    }
+                }
             }
         }
     }
+
+    for (auto& child : children) child -> update(elapsed);
 }
 
 BaseSprite::~BaseSprite() 
@@ -828,17 +847,62 @@ BaseSprite::~BaseSprite()
 
 void BaseSprite::render() 
 {
-    
+    for (auto& child : children) child -> render();
 }
 
 float BaseSprite::getWidth()
 {
+    if (spriteType == "sparrow" && curAnim >= 0 && curAnim < static_cast<int>(anims.size()))
+    {
+        const Animation& anim = anims[curAnim];
+
+        if (curFrame >= 0 && curFrame < static_cast<int>(anim.frames.size()))
+        {
+            return anim.frames[curFrame].width * stuff.scaleX;
+        }
+    }
+
     return drect.w;
 }
 
 float BaseSprite::getHeight()
 {
+    if (spriteType == "sparrow" && curAnim >= 0 && curAnim < static_cast<int>(anims.size()))
+    {
+        const Animation& anim = anims[curAnim];
+
+        if (curFrame >= 0 && curFrame < static_cast<int>(anim.frames.size()))
+        {
+            return anim.frames[curFrame].height * stuff.scaleY;
+        }
+    }
+
     return drect.h;
+}
+
+float BaseSprite::getAtlasMaxHeight() const
+{
+    float maxHeight = 0.0f;
+
+    for (const Animation& anim : anims)
+    {
+        for (const AtlasFrame& frame : anim.frames)
+        {
+            maxHeight = std::max(maxHeight, frame.frameHeight > 0.0f ? frame.frameHeight : frame.height);
+        }
+    }
+
+    return maxHeight;
+}
+
+void BaseSprite::addChild(std::unique_ptr<FunkinSprite> child)
+{
+    if (child) children.push_back(std::move(child));
+}
+
+void BaseSprite::clearChildren()
+{
+    children.clear();
 }
 
 FunkinSprite::FunkinSprite(const std::string& path, const std::string& type)
@@ -878,6 +942,11 @@ void FunkinSprite::playAnim(const std::string& name)
     sprite -> playAnim(name);
 }
 
+std::vector<std::string> FunkinSprite::getAtlasFrameNames() const
+{
+    return sprite -> getAtlasFrameNames();
+}
+
 SpriteRenderParams& FunkinSprite::getParams()
 {
     return sprite -> stuff;
@@ -891,4 +960,24 @@ float FunkinSprite::getWidth()
 float FunkinSprite::getHeight()
 {
     return sprite -> getHeight();
+}
+
+float FunkinSprite::getAtlasMaxHeight() const
+{
+    return sprite -> getAtlasMaxHeight();
+}
+
+void FunkinSprite::addChild(std::unique_ptr<FunkinSprite> child)
+{
+    sprite -> addChild(std::move(child));
+}
+
+void FunkinSprite::clearChildren()
+{
+    sprite -> clearChildren();
+}
+
+void FunkinSprite::setRenderSelf(bool value)
+{
+    sprite -> setRenderSelf(value);
 }

@@ -30,3 +30,12 @@ class SDL3Sprite : public BaseSprite
         void visitSymbolPieces(const std::string& symbolName, int frame, const AffineMatrix& parentMatrix, const SpritemapStyle& parentStyle, int recursionDepth,
             const std::function<void(const std::string&, const SpritemapPiece&, const AffineMatrix&, const SpritemapStyle&)>& callback) const;
 };
+
+class SDL3Graphic : public BaseGraphic
+{
+    public:
+        SDL3Graphic(const float width = 0.0f, const float height = 0.0f, const Color color = {});
+        ~SDL3Graphic() override;
+
+        void render() override;
+};

@@ -264,6 +264,38 @@ class BaseSprite
         }
 };
 
+class FunkinGraphic;
+
+class BaseGraphic
+{
+    protected:
+		SpriteRect drect;
+		SpriteRect srect;
+
+        std::vector<std::unique_ptr<FunkinGraphic>> children;
+        bool renderSelf = true;
+
+    public:
+        BaseGraphic() = default;
+        virtual ~BaseGraphic();
+
+		SpriteRenderParams stuff;
+
+        float getWidth();
+        float getHeight();
+
+        void update(float elapsed);
+        virtual void render();
+
+        void addChild(std::unique_ptr<FunkinGraphic> child);
+        void clearChildren();
+
+        void setRenderSelf(bool value)
+        {
+            renderSelf = value;
+        }
+};
+
 class FunkinSprite
 {
     friend class SpriteManager;
@@ -294,6 +326,31 @@ class FunkinSprite
         float getAtlasMaxHeight() const;
 
         void addChild(std::unique_ptr<FunkinSprite> child);
+        void clearChildren();
+
+        void setRenderSelf(bool value);
+};
+
+class FunkinGraphic
+{
+    friend class SpriteManager;
+
+    private:
+        std::unique_ptr<BaseGraphic> sprite;
+
+    public:
+        FunkinGraphic(const float width = 0.0f, const float height = 0.0f, const Color color = {});
+        virtual ~FunkinGraphic() = default;
+
+        void update(float elapsed);
+        void render();
+
+        SpriteRenderParams& getParams();
+
+        float getWidth();
+        float getHeight();
+
+        void addChild(std::unique_ptr<FunkinGraphic> child);
         void clearChildren();
 
         void setRenderSelf(bool value);

@@ -193,7 +193,6 @@ void SDL3Sprite::render()
     SDL_RenderGeometry(static_cast<SDL_Renderer*>(globalWindow -> getRenderer()), texture, vertices, 4, daindices, 6);
 }
 
-
 void SDL3Sprite::visitSymbolPieces(const std::string& symbolName, int frame, const AffineMatrix& parentMatrix, const SpritemapStyle& parentStyle, int recursionDepth,
     const std::function<void(const std::string&, const SpritemapPiece&, const AffineMatrix&, const SpritemapStyle&)>& callback) const
 {
@@ -486,4 +485,61 @@ SDL3Sprite::~SDL3Sprite()
 {
     SDL_DestroyTexture(texture);
     SDL_DestroyTexture(spritemapRenderTexture);
+}
+
+SDL3Graphic::SDL3Graphic(const float width, const float height, const Color color)
+{
+    stuff.width = width;
+    stuff.height = height;
+    stuff.color = color;
+}
+
+void SDL3Graphic::render()
+{
+    if (!stuff.visible) return;
+    BaseGraphic::render();
+    if (!renderSelf) return;
+
+    srect.x = 0;
+    srect.y = 0;
+    srect.w = stuff.width;
+    srect.h = stuff.height;
+
+    drect.x = stuff.x * stuff.scaleX;
+    drect.y = stuff.y * stuff.scaleY;
+    drect.w = srect.w * stuff.scaleX;
+    drect.h = srect.h * stuff.scaleY;
+
+    float u0 = srect.x;
+    float u1 = srect.x + srect.w;
+    float v0 = srect.y;
+    float v1 = srect.y + srect.h;
+
+    float rad = stuff.angle * (std::acos(-1.0f) / 180.0f);
+    float cosA = cosf(rad);
+    float sinA = sinf(rad);
+
+    float centerX = drect.x + (drect.w / 2.0f);
+    float centerY = drect.y + (drect.h / 2.0f);
+
+    SDL_FPoint p_tl = {(drect.x + (stuff.skewX / 2.0f)) - centerX, (drect.y + (stuff.skewY / 2.0f)) - centerY};
+    SDL_FPoint p_tr = {((drect.x + drect.w) + (stuff.skewX / 2.0f)) - centerX, (drect.y - (stuff.skewY / 2.0f)) - centerY};
+    SDL_FPoint p_br = {((drect.x + drect.w) - (stuff.skewX / 2.0f)) - centerX, ((drect.y + drect.h) - (stuff.skewY / 2.0f)) - centerY};
+    SDL_FPoint p_bl = {(drect.x - (stuff.skewX / 2.0f)) - centerX, ((drect.y + drect.h) + (stuff.skewY / 2.0f)) - centerY};
+
+    SDL_Vertex vertices[4] = {
+        {{centerX + (p_tl.x * cosA - p_tl.y * sinA), centerY + (p_tl.x * sinA + p_tl.y * cosA)}, {stuff.color.r, stuff.color.g, stuff.color.b, stuff.alpha}, {u0, v0}},
+        {{centerX + (p_tr.x * cosA - p_tr.y * sinA), centerY + (p_tr.x * sinA + p_tr.y * cosA)}, {stuff.color.r, stuff.color.g, stuff.color.b, stuff.alpha}, {u1, v0}},
+        {{centerX + (p_br.x * cosA - p_br.y * sinA), centerY + (p_br.x * sinA + p_br.y * cosA)}, {stuff.color.r, stuff.color.g, stuff.color.b, stuff.alpha}, {u1, v1}},
+        {{centerX + (p_bl.x * cosA - p_bl.y * sinA), centerY + (p_bl.x * sinA + p_bl.y * cosA)}, {stuff.color.r, stuff.color.g, stuff.color.b, stuff.alpha}, {u0, v1}}
+    };
+
+    int daindices[6] = {0, 1, 2, 2, 3, 0};
+
+    SDL_RenderGeometry(static_cast<SDL_Renderer*>(globalWindow -> getRenderer()), nullptr, vertices, 4, daindices, 6);
+}
+
+SDL3Graphic::~SDL3Graphic()
+{
+    
 }

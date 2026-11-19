@@ -905,6 +905,41 @@ void BaseSprite::clearChildren()
     children.clear();
 }
 
+void BaseGraphic::update(float elapsed)
+{
+    for (auto& child : children) child -> update(elapsed);
+}
+
+BaseGraphic::~BaseGraphic() 
+{
+    
+}
+
+void BaseGraphic::render() 
+{
+    for (auto& child : children) child -> render();
+}
+
+float BaseGraphic::getWidth()
+{
+    return drect.w;
+}
+
+float BaseGraphic::getHeight()
+{
+    return drect.h;
+}
+
+void BaseGraphic::addChild(std::unique_ptr<FunkinGraphic> child)
+{
+    if (child) children.push_back(std::move(child));
+}
+
+void BaseGraphic::clearChildren()
+{
+    children.clear();
+}
+
 FunkinSprite::FunkinSprite(const std::string& path, const std::string& type)
 {
     #if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
@@ -978,6 +1013,53 @@ void FunkinSprite::clearChildren()
 }
 
 void FunkinSprite::setRenderSelf(bool value)
+{
+    sprite -> setRenderSelf(value);
+}
+
+FunkinGraphic::FunkinGraphic(const float width, const float height, const Color color)
+{
+    #if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
+    sprite = std::make_unique<SDL3Graphic>(width, height, color);
+    #endif
+}
+
+void FunkinGraphic::update(float elapsed)
+{
+    sprite -> update(elapsed);
+}
+
+void FunkinGraphic::render()
+{
+    sprite -> render();
+}
+
+SpriteRenderParams& FunkinGraphic::getParams()
+{
+    return sprite -> stuff;
+}
+
+float FunkinGraphic::getWidth()
+{
+    return sprite -> getWidth();
+}
+
+float FunkinGraphic::getHeight()
+{
+    return sprite -> getHeight();
+}
+
+void FunkinGraphic::addChild(std::unique_ptr<FunkinGraphic> child)
+{
+    sprite -> addChild(std::move(child));
+}
+
+void FunkinGraphic::clearChildren()
+{
+    sprite -> clearChildren();
+}
+
+void FunkinGraphic::setRenderSelf(bool value)
 {
     sprite -> setRenderSelf(value);
 }

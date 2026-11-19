@@ -1,5 +1,10 @@
 #include "titlestate.hpp"
 
+#include <fstream>
+#include <random>
+#include <string>
+#include <vector>
+
 TitleState::TitleState()
 {
     create();
@@ -8,6 +13,35 @@ TitleState::TitleState()
 TitleState::~TitleState()
 {
     destroy();
+}
+
+std::vector<std::vector<std::string>> TitleState::getIntroTextShit()
+{
+    std::string assetPath = fileExists("mods/" + modName + "/ui/title/intro-text.txt") ? "mods/" + modName + "/" : "assets/";
+    std::ifstream file((assetPath + "ui/title/intro-text.txt").c_str());
+
+    std::vector<std::vector<std::string>> swagGoodArray;
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (line.empty()) continue;
+
+        std::vector<std::string> firstArray;
+        std::string part;
+        size_t pos = 0;
+
+        while ((pos = line.find("--")) != std::string::npos)
+        {
+            firstArray.push_back(line.substr(0, pos));
+            line.erase(0, pos + 2);
+        }
+
+        firstArray.push_back(line);
+        swagGoodArray.push_back(firstArray);
+    }
+
+    return swagGoodArray;
 }
 
 void TitleState::startIntro()
@@ -57,6 +91,10 @@ void TitleState::startIntro()
     coolText3 -> setPosition(0, 200);
     sprites.add(coolText3);
 
+    whiteFlash = new FunkinGraphic(globalWindow -> getWidth(), globalWindow -> getHeight());
+    whiteFlash -> getParams().alpha = 0;
+    sprites.add(whiteFlash);
+
     freakyMenu = new FunkinSound("ui/main-menu/freaky-menu/freaky-menu", "music");
     sounds.add(freakyMenu);
 
@@ -71,11 +109,23 @@ void TitleState::skipIntro()
     logoBl -> getParams().visible = true;
     gfDance -> getParams().visible = true;
     titleText -> getParams().visible = true;
+
+    daFlashAlpha = 1;
 }
 
 void TitleState::create()
 {
     introSkipped = false;
+    enterPressed = false;
+
+    auto introText = getIntroTextShit();
+
+    if (!introText.empty())
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::uniform_int_distribution<size_t> dist(0, introText.size() - 1);
+        curWacky = introText[dist(rng)];
+    }
 
     startIntro();
     freakyMenu -> playMusic();
@@ -85,6 +135,10 @@ void TitleState::create()
 
 void TitleState::update(float elapsed)
 {
+    if(daFlashAlpha > 0) daFlashAlpha -= elapsed / (enterPressed ? 1 : 2);
+
+    whiteFlash -> getParams().alpha = daFlashAlpha;
+
     if(introSkipped)
     {
         coolText1 -> setAlpha(0);
@@ -97,6 +151,9 @@ void TitleState::update(float elapsed)
     {
         if(introSkipped)
         {
+            enterPressed = true;
+            daFlashAlpha = 1;
+
             titleText -> playAnim("press");
             confirmSound -> play();
         }
@@ -104,6 +161,15 @@ void TitleState::update(float elapsed)
         {
             skipIntro();
         }
+    }
+
+    if(enterPressed)
+    {
+        timeTillMenu += elapsed;
+        /*if(timeTillMenu >= 1)
+        {
+
+        }*/
     }
 }
 
@@ -158,11 +224,18 @@ void TitleState::beatHit(int beat)
                 coolText3 -> setText("");
                 ngSpr -> getParams().visible = false;
                 break;
+            case 9:
+                coolText1 -> setText(curWacky.at(0));
+                coolText1 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText1 -> getWidth() / 2), 200);
+                break;
+            case 11:
+                coolText2 -> setText(curWacky.at(1));
+                coolText2 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText2 -> getWidth() / 2), 260);
+                break;
             case 12:
                 coolText1 -> setText("");
                 coolText2 -> setText("");
                 coolText3 -> setText("");
-                ngSpr -> getParams().visible = false;
                 break;
             case 13:
                 coolText1 -> setText("Friday");

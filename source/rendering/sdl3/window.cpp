@@ -47,6 +47,7 @@ bool WindowSDL3::create(int width, int height, const std::string &title)
 
     SDL_SetRenderLogicalPresentation(renderer, width, height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
     SDL_SetRenderVSync(renderer, 1);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     
     initInput();
     SDL_ShowWindow(window);

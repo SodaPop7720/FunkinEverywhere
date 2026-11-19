@@ -32,7 +32,13 @@ class TitleState : public BaseState
 		FunkinSound* confirmSound;
 
 		bool introSkipped;
+		bool enterPressed;
+		float daFlashAlpha = 0.0f;
+		float timeTillMenu = 0.0f;
 		
 		void startIntro();
 		void skipIntro();
+
+		std::vector<std::string> curWacky;
+		std::vector<std::vector<std::string>> getIntroTextShit();
 };

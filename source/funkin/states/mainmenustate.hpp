@@ -1,4 +1,5 @@
-#include "basestate.hpp"
+#include "../import.hpp"
+#include "../../states/basestate.hpp"
 
 class MainMenuState : public BaseState 
 {

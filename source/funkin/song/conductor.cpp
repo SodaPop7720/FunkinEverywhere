@@ -1,7 +1,7 @@
 #include <cmath>
 
 #include "conductor.hpp"
-#include "../states/basestate.hpp"
+#include "../../states/basestate.hpp"
 #include "../../audio/soundmanager.hpp"
 
 Conductor conductor;

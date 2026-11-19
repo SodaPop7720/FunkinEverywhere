@@ -1,5 +1,5 @@
-#include "basestate.hpp"
 #include "../import.hpp"
+#include "../../states/basestate.hpp"
 #include "../graphics/atlastext.hpp"
 
 class TitleState : public BaseState 

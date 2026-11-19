@@ -43,8 +43,8 @@ void TitleState::startIntro()
 void TitleState::create()
 {
     startIntro();
-    conductor.setBPM(102);
     freakyMenu -> playMusic();
+    conductor.setBPM(102);
     isInitialized = true;
 }
 

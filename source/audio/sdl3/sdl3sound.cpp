@@ -50,31 +50,31 @@ SDL3SoundFE::~SDL3SoundFE()
 
 void SDL3SoundFE::play()
 {
-    if (stream == NULL) return;
+    if (stream == NULL || soundType != "sound") return;
     SDL_ResumeAudioStreamDevice(stream);
 }
 
 void SDL3SoundFE::pause()
 {
-    if (stream == NULL) return;
+    if (stream == NULL || soundType != "sound") return;
     SDL_PauseAudioStreamDevice(stream);
 }
 
 void SDL3SoundFE::playMusic()
 {
-    if (stream == NULL) return;
+    if (stream == NULL || soundType != "music") return;
     SDL_ResumeAudioStreamDevice(stream);
 }
 
 void SDL3SoundFE::pauseMusic()
 {
-    if (stream == NULL) return;
+    if (stream == NULL || soundType != "music") return;
     SDL_PauseAudioStreamDevice(stream);
 }
 
 void SDL3SoundFE::stopMusic()
 {
-    if (stream == NULL) return;
+    if (stream == NULL || soundType != "music") return;
     SDL_ClearAudioStream(stream);
 }
 

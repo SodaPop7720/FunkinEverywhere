@@ -19,9 +19,20 @@ class TitleState : public BaseState
 		FunkinSprite* logoBl;
 		FunkinSprite* gfDance;
 		FunkinSprite* titleText;
+
+		AtlasText* coolText1;
+		AtlasText* coolText2;
+		AtlasText* coolText3;
+
+		FunkinSprite* ngSpr;
+
+		FunkinGraphic* whiteFlash;
 		
 		FunkinSound* freakyMenu;
 		FunkinSound* confirmSound;
+
+		bool introSkipped;
 		
 		void startIntro();
+		void skipIntro();
 };

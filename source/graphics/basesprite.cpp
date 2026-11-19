@@ -701,7 +701,8 @@ void BaseSprite::addAnim(const std::string& name, const std::string& prefix, flo
     anim.flipX = flipX;
     anim.flipY = flipY;
 
-    anims.push_back(anim);
+    auto existing = std::find_if(anims.begin(), anims.end(), [&](const Animation& current) {return current.name == name;});
+    if (existing != anims.end()) *existing = std::move(anim); else anims.push_back(std::move(anim));
 }
 
 void BaseSprite::addAnim(const std::string& name, const std::string& prefix, const std::vector<int>& indices, float fps, bool looped, bool flipX, bool flipY)

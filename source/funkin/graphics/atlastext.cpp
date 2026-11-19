@@ -114,7 +114,7 @@ void AtlasText::appendTextCased(const std::string& str)
 
     for (auto it = characters.rbegin(); it != characters.rend(); ++it)
     {
-        if ((*it)->getParams().visible)
+        if ((*it) -> getParams().visible)
         {
             lastChar = *it;
             break;
@@ -125,8 +125,8 @@ void AtlasText::appendTextCased(const std::string& str)
     {
         const SpriteRenderParams& params = lastChar -> getParams();
 
-        xPos = params.x - x + lastChar->getWidth();
-        yPos = params.y - y + lastChar->getHeight() - getMaxHeight();
+        xPos = params.x - x + lastChar -> getWidth();
+        yPos = params.y - y + lastChar -> getHeight() - getMaxHeight();
     }
 
     for (size_t i = 0; i < str.size();)
@@ -193,13 +193,15 @@ void AtlasText::appendTextCased(const std::string& str)
         {
             charSprite -> getParams().visible = true;
             charSprite -> getParams().alpha = 1.0f;
-            charSprite -> playAnim(animationPrefix);
+            charSprite -> addAnim("exist", animationPrefix, 24, true);
+            charSprite -> playAnim("exist");
         }
         else
         {
             auto newCharacter = std::make_unique<FunkinSprite>(font -> atlasPath, font -> spriteType);
 
-            newCharacter -> playAnim(animationPrefix);
+            newCharacter -> addAnim("exist", animationPrefix, 24, true);
+            newCharacter -> playAnim("exist");
             
             charSprite = newCharacter.get();
             characters.push_back(charSprite);

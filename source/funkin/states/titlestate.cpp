@@ -33,6 +33,30 @@ void TitleState::startIntro()
     titleText -> playAnim("idle");
     sprites.add(titleText);
 
+    logoBl -> getParams().visible = false;
+    gfDance -> getParams().visible = false;
+    titleText -> getParams().visible = false;
+
+    ngSpr = new FunkinSprite("ui/title/newgrounds-logo");
+    ngSpr -> getParams().x = (globalWindow -> getWidth() * 0.5) - (ngSpr -> getWidth() / 2);
+    ngSpr -> getParams().y = (globalWindow -> getHeight() * 0.52) + 100;
+    ngSpr -> getParams().scaleX = 0.8;
+    ngSpr -> getParams().scaleY = 0.8;
+    ngSpr -> getParams().visible = false;
+    sprites.add(ngSpr);
+
+    coolText1 = new AtlasText("", AtlasFont::BOLD, "ui/fonts/bold");
+    coolText1 -> setPosition(0, 200);
+    sprites.add(coolText1);
+
+    coolText2 = new AtlasText("", AtlasFont::BOLD, "ui/fonts/bold");
+    coolText2 -> setPosition(0, 200);
+    sprites.add(coolText2);
+
+    coolText3 = new AtlasText("", AtlasFont::BOLD, "ui/fonts/bold");
+    coolText3 -> setPosition(0, 200);
+    sprites.add(coolText3);
+
     freakyMenu = new FunkinSound("ui/main-menu/freaky-menu/freaky-menu", "music");
     sounds.add(freakyMenu);
 
@@ -40,8 +64,19 @@ void TitleState::startIntro()
     sounds.add(confirmSound);
 }
 
+void TitleState::skipIntro()
+{
+    introSkipped = true;
+
+    logoBl -> getParams().visible = true;
+    gfDance -> getParams().visible = true;
+    titleText -> getParams().visible = true;
+}
+
 void TitleState::create()
 {
+    introSkipped = false;
+
     startIntro();
     freakyMenu -> playMusic();
     conductor.setBPM(102);
@@ -50,10 +85,25 @@ void TitleState::create()
 
 void TitleState::update(float elapsed)
 {
+    if(introSkipped)
+    {
+        coolText1 -> setAlpha(0);
+        coolText2 -> setAlpha(0);
+        coolText3 -> setAlpha(0);
+        ngSpr -> getParams().visible = false;
+    }
+
     if(inputManager.justPressed(FUNKIN_ACTION::ACCEPT))
     {
-        titleText -> playAnim("press");
-        confirmSound -> play();
+        if(introSkipped)
+        {
+            titleText -> playAnim("press");
+            confirmSound -> play();
+        }
+        else
+        {
+            skipIntro();
+        }
     }
 }
 
@@ -71,6 +121,66 @@ void TitleState::beatHit(int beat)
 {
     logoBl -> playAnim("bump");
     if (beat % 2 == 0) gfDance -> playAnim("danceLeft"); else gfDance -> playAnim("danceRight");
+
+    if(!introSkipped)
+    {
+        switch (beat)
+        {
+            case 1:
+                coolText1 -> setText("The");
+                coolText1 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText1 -> getWidth() / 2), 200);
+                coolText2 -> setText("Funkin' Crew Inc");
+                coolText2 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText2 -> getWidth() / 2), 260);
+                break;
+            case 3:
+                coolText3 -> setText("Presents");
+                coolText3 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText3 -> getWidth() / 2), 320);
+                break;
+            case 4:
+                coolText1 -> setText("");
+                coolText2 -> setText("");
+                coolText3 -> setText("");
+                break;
+            case 5:
+                coolText1 -> setText("In association");
+                coolText1 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText1 -> getWidth() / 2), 200);
+                coolText2 -> setText("With");
+                coolText2 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText2 -> getWidth() / 2), 260);
+                break;
+            case 7:
+                coolText3 -> setText("Newgrounds");
+                coolText3 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText3 -> getWidth() / 2), 320);
+                ngSpr -> getParams().visible = true;
+                break;
+            case 8:
+                coolText1 -> setText("");
+                coolText2 -> setText("");
+                coolText3 -> setText("");
+                ngSpr -> getParams().visible = false;
+                break;
+            case 12:
+                coolText1 -> setText("");
+                coolText2 -> setText("");
+                coolText3 -> setText("");
+                ngSpr -> getParams().visible = false;
+                break;
+            case 13:
+                coolText1 -> setText("Friday");
+                coolText1 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText1 -> getWidth() / 2), 200);
+                break;
+            case 14:
+                coolText2 -> setText("Night");
+                coolText2 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText2 -> getWidth() / 2), 260);
+                break;
+            case 15:
+                coolText3 -> setText("Funkin'");
+                coolText3 -> setPosition((globalWindow -> getWidth() * 0.5) - (coolText3 -> getWidth() / 2), 320);
+                break;
+            case 16:
+                skipIntro();
+                break;
+        }
+    }
 }
 
 void TitleState::measureHit(int measure)

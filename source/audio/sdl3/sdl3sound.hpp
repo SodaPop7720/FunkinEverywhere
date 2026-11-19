@@ -22,8 +22,8 @@ class SDL3SoundFE : public BaseSound
 
         void update(float elapsed) override;
     private:
-        SDL_AudioStream* stream;
+        SDL_AudioStream* stream = nullptr;
 
-        int bytes_per_second;
-        Uint64 total_bytes_pushed;
+        int bytes_per_second = 0;
+        Uint64 total_bytes_pushed = 0;
 };

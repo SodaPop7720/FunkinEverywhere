@@ -80,8 +80,10 @@ void SDL3SoundFE::stopMusic()
 
 void SDL3SoundFE::update(float elapsed)
 {
-    int bytes_left_in_queue = SDL_GetAudioStreamAvailable(stream);
-    Uint64 bytes_played = total_bytes_pushed - bytes_left_in_queue;
+    if (!stream || soundType != "music") return;
+
+    Uint64 queued = SDL_GetAudioStreamQueued(stream);
+    Uint64 bytes_played = total_bytes_pushed > queued ? total_bytes_pushed - queued : 0;
 
     sounds.current_position_seconds = (double)bytes_played / bytes_per_second;
 }

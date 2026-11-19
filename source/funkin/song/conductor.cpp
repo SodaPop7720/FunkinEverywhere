@@ -1,8 +1,8 @@
-#include <iostream>
 #include <cmath>
 
 #include "conductor.hpp"
 #include "../states/basestate.hpp"
+#include "../../audio/soundmanager.hpp"
 
 Conductor conductor;
 
@@ -19,9 +19,9 @@ void Conductor::setBPM(float newbpm)
     curBeat = 0;
     curMeasure = 0;
 
-    prevcurStep = 0;
-    prevcurBeat = 0;
-    prevcurMeasure = 0;
+    prevcurStep = -1;
+    prevcurBeat = -1;
+    prevcurMeasure = -1;
 }
 
 void Conductor::changeBPM(float newbpm)
@@ -31,8 +31,8 @@ void Conductor::changeBPM(float newbpm)
 
 void Conductor::updateBeats(float elapsed)
 {
-    swagTimer += elapsed;
-    curStepFloat = (swagTimer / (15000 / bpm) * 1000);
+    swagTimer = sounds.current_position_seconds;
+    curStepFloat = swagTimer * (bpm / 15.0f);
 
     curStep = std::floor(curStepFloat);
     curBeat = std::floor(curStepFloat / stepsPerBeat);

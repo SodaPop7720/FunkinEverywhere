@@ -28,7 +28,6 @@ std::vector<std::vector<std::string>> TitleState::getIntroTextShit()
         if (line.empty()) continue;
 
         std::vector<std::string> firstArray;
-        std::string part;
         size_t pos = 0;
 
         while ((pos = line.find("--")) != std::string::npos)
@@ -166,7 +165,7 @@ void TitleState::update(float elapsed)
     if(enterPressed)
     {
         timeTillMenu += elapsed;
-        /*if(timeTillMenu >= 1)
+        /*if(timeTillMenu >= 2)
         {
 
         }*/

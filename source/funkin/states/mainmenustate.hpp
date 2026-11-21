@@ -1,5 +1,9 @@
+#pragma once
+
+#include <string>
+#include <vector>
+
 #include "../import.hpp"
-#include "../../states/basestate.hpp"
 
 class MainMenuState : public BaseState 
 {
@@ -14,4 +18,15 @@ class MainMenuState : public BaseState
 
 		MainMenuState();
 		~MainMenuState();
+
+		std::vector<std::string> optionShit = {
+			"freeplay",
+			"credits",
+			"options"
+		};
+		
+		FunkinSprite* bg;
+		FunkinSprite* menuItems;
+
+		int curSelected = 0;
 };

@@ -1,4 +1,5 @@
 #include "titlestate.hpp"
+#include "mainmenustate.hpp"
 
 #include <cstdlib>
 #include <fstream>
@@ -130,6 +131,12 @@ void TitleState::create()
     isInitialized = true;
 }
 
+void TitleState::goToMenu()
+{
+    MainMenuState *mainmenustate = new MainMenuState();
+    states.changeState(mainmenustate);
+}
+
 void TitleState::update(float elapsed)
 {
     if(daFlashAlpha > 0) daFlashAlpha -= elapsed / (enterPressed ? 1 : 2); else daFlashAlpha = 0;
@@ -148,11 +155,18 @@ void TitleState::update(float elapsed)
     {
         if(introSkipped)
         {
-            enterPressed = true;
-            daFlashAlpha = 1;
+            if(enterPressed)
+            {
+                goToMenu();
+            }
+            else
+            {
+                enterPressed = true;
+                daFlashAlpha = 1;
 
-            titleText -> playAnim("press");
-            confirmSound -> play();
+                titleText -> playAnim("press");
+                confirmSound -> play();
+            }
         }
         else
         {
@@ -163,16 +177,16 @@ void TitleState::update(float elapsed)
     if(enterPressed)
     {
         timeTillMenu += elapsed;
-        /*if(timeTillMenu >= 2)
+        if(timeTillMenu >= 2)
         {
-
-        }*/
+            goToMenu();
+        }
     }
 }
 
 void TitleState::destroy()
 {
-
+    sprites.clear();
 }
 
 void TitleState::stepHit(int step)

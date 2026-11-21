@@ -1,5 +1,6 @@
+#pragma once
+
 #include "../import.hpp"
-#include "../../states/basestate.hpp"
 #include "../graphics/atlastext.hpp"
 
 class TitleState : public BaseState 
@@ -38,6 +39,7 @@ class TitleState : public BaseState
 		
 		void startIntro();
 		void skipIntro();
+		void goToMenu();
 
 		std::vector<std::string> curWacky;
 		std::vector<std::vector<std::string>> getIntroTextShit();

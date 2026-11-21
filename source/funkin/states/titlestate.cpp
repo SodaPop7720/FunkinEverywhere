@@ -1,7 +1,7 @@
 #include "titlestate.hpp"
 
+#include <cstdlib>
 #include <fstream>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -121,9 +121,7 @@ void TitleState::create()
 
     if (!introText.empty())
     {
-        static std::mt19937 rng(std::random_device{}());
-        std::uniform_int_distribution<size_t> dist(0, introText.size() - 1);
-        curWacky = introText[dist(rng)];
+        curWacky = introText[std::rand() % (introText.size() - 1)];
     }
 
     startIntro();
@@ -134,7 +132,7 @@ void TitleState::create()
 
 void TitleState::update(float elapsed)
 {
-    if(daFlashAlpha > 0) daFlashAlpha -= elapsed / (enterPressed ? 1 : 2);
+    if(daFlashAlpha > 0) daFlashAlpha -= elapsed / (enterPressed ? 1 : 2); else daFlashAlpha = 0;
 
     whiteFlash -> getParams().alpha = daFlashAlpha;
 

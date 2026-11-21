@@ -1,6 +1,9 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <cstdlib>
+#include <ctime>
+
 #include "audio/soundmanager.hpp"
 #include "graphics/spritemanager.hpp"
 #include "rendering/sdl3/window.hpp"
@@ -25,6 +28,8 @@ int main(int argc, char **argv)
         return 1;
     }
     sounds.init();
+
+    std::srand(static_cast<unsigned int>(std::time(0))); // randomness is done through this to support older c++ versions
 
     TitleState *initialState = new TitleState(); // replace this line if you wanna have a different initial state
     states.changeState(initialState);

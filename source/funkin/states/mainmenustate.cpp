@@ -86,7 +86,8 @@ void MainMenuState::update(float elapsed)
 
 void MainMenuState::destroy()
 {
-
+    sprites.clear();
+    sounds.clear();
 }
 
 void MainMenuState::stepHit(int step)

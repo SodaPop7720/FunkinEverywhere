@@ -6,5 +6,6 @@
 #include "../rendering/window.hpp"
 #include "../states/basestate.hpp"
 #include "../util/coolutil.hpp"
+#include "../util/jsonutil.hpp"
 
 #include "song/conductor.hpp"

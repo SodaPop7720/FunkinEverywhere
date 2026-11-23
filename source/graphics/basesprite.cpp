@@ -1008,6 +1008,11 @@ void FunkinSprite::addChild(std::unique_ptr<FunkinSprite> child)
     sprite -> addChild(std::move(child));
 }
 
+std::vector<std::unique_ptr<FunkinSprite>>& FunkinSprite::getChildren()
+{
+    return sprite -> children;
+}
+
 void FunkinSprite::clearChildren()
 {
     sprite -> clearChildren();
@@ -1053,6 +1058,11 @@ float FunkinGraphic::getHeight()
 void FunkinGraphic::addChild(std::unique_ptr<FunkinGraphic> child)
 {
     sprite -> addChild(std::move(child));
+}
+
+std::vector<std::unique_ptr<FunkinGraphic>>& FunkinGraphic::getChildren()
+{
+    return sprite -> children;
 }
 
 void FunkinGraphic::clearChildren()

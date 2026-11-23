@@ -26,7 +26,10 @@ class MainMenuState : public BaseState
 		};
 		
 		FunkinSprite* bg;
-		FunkinSprite* menuItems;
+		FunkinSprite* menuItemSprites;
+		std::vector<FunkinSprite*> menuItems;
 
 		int curSelected = 0;
+
+		void changeSelection(int silly);
 };

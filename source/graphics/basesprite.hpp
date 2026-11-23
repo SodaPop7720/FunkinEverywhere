@@ -192,6 +192,8 @@ class SpriteRenderParams
         bool visible = true;
         Color color;
         std::string blend = "none";
+
+        int id = 0;
 };
 
 class FunkinSprite;
@@ -213,7 +215,6 @@ class BaseSprite
         float animFPS = 24.0f;
         bool animLoop = true;
 
-        std::vector<std::unique_ptr<FunkinSprite>> children;
         bool renderSelf = true;
 
     public:
@@ -258,6 +259,8 @@ class BaseSprite
         void addChild(std::unique_ptr<FunkinSprite> child);
         void clearChildren();
 
+        std::vector<std::unique_ptr<FunkinSprite>> children;
+
         void setRenderSelf(bool value)
         {
             renderSelf = value;
@@ -272,7 +275,6 @@ class BaseGraphic
 		SpriteRect drect;
 		SpriteRect srect;
 
-        std::vector<std::unique_ptr<FunkinGraphic>> children;
         bool renderSelf = true;
 
     public:
@@ -289,6 +291,8 @@ class BaseGraphic
 
         void addChild(std::unique_ptr<FunkinGraphic> child);
         void clearChildren();
+
+        std::vector<std::unique_ptr<FunkinGraphic>> children;
 
         void setRenderSelf(bool value)
         {
@@ -326,6 +330,7 @@ class FunkinSprite
         float getAtlasMaxHeight() const;
 
         void addChild(std::unique_ptr<FunkinSprite> child);
+        std::vector<std::unique_ptr<FunkinSprite>>& getChildren();
         void clearChildren();
 
         void setRenderSelf(bool value);
@@ -351,6 +356,7 @@ class FunkinGraphic
         float getHeight();
 
         void addChild(std::unique_ptr<FunkinGraphic> child);
+        std::vector<std::unique_ptr<FunkinGraphic>>& getChildren();
         void clearChildren();
 
         void setRenderSelf(bool value);

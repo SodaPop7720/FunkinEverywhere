@@ -12,14 +12,45 @@ MainMenuState::~MainMenuState()
     destroy();
 }
 
+void MainMenuState::changeSelection(int silly)
+{
+    if (optionShit.empty()) return;
+
+    curSelected += silly;
+    if(curSelected < 0) curSelected = optionShit.size() - 1;
+    if(curSelected >= optionShit.size()) curSelected = 0;
+
+    for (size_t i = 0; i < menuItemSprites -> getChildren().size(); ++i)
+    {
+        auto* item = menuItemSprites -> getChildren()[i].get();
+        if (!item) continue;
+
+        item -> playAnim("idle");
+        item -> getParams().x = (globalWindow -> getWidth() * 0.5) - (item -> getWidth() / 2);
+        item -> getParams().y = ((globalWindow -> getHeight() - (160 * optionShit.size())) / 2) + i * 160;
+
+        float coolX = item -> getParams().x;
+        float coolY = item -> getParams().y;
+        float coolWidth = item -> getWidth();
+        float coolHeight = item -> getHeight();
+
+        if(item -> getParams().id == curSelected)
+        {
+            item -> playAnim("selected");
+            item -> getParams().x = coolX - ((item -> getWidth() - coolWidth) / 2);
+            item -> getParams().y = coolY - ((item -> getHeight() - coolHeight) / 2);
+        }
+    }
+}
+
 void MainMenuState::create()
 {
     bg = new FunkinSprite("ui/main-menu/menu-bg", "none");
     sprites.add(bg);
     
-    menuItems = new FunkinSprite("ui/main-menu/items/story-mode", "sparrow");
-    menuItems -> setRenderSelf(false);
-    sprites.add(menuItems);
+    menuItemSprites = new FunkinSprite("ui/main-menu/items/story-mode", "sparrow");
+    menuItemSprites -> setRenderSelf(false);
+    sprites.add(menuItemSprites);
 
     for (size_t i = 0; i < optionShit.size(); ++i)
     {
@@ -32,13 +63,25 @@ void MainMenuState::create()
         menuItem -> getParams().x = (globalWindow -> getWidth() * 0.5) - (menuItem -> getWidth() / 2);
         menuItem -> getParams().y = ((globalWindow -> getHeight() - (160 * optionShit.size())) / 2) + i * 160;
 
-        menuItems -> addChild(std::move(menuItem));
+        menuItem -> getParams().id = i;
+
+        menuItems.push_back(menuItem.get());
+        menuItemSprites -> addChild(std::move(menuItem));
     }
+
+    changeSelection(0);
 }
 
 void MainMenuState::update(float elapsed)
 {
-
+    if(inputManager.justPressed(FUNKIN_ACTION::UI_UP))
+    {
+        changeSelection(-1);
+    }
+    if(inputManager.justPressed(FUNKIN_ACTION::UI_DOWN))
+    {
+        changeSelection(1);
+    }
 }
 
 void MainMenuState::destroy()

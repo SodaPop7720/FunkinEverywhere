@@ -14,6 +14,8 @@ class SDL3Sprite : public BaseSprite
         SDL3Sprite(const std::string& path, const std::string& type = "none");
         ~SDL3Sprite() override;
 
+        void loadSprite(const std::string& path, const std::string& type);
+
         void create(const std::string& path, const std::string& type) override;
         void render() override;
 

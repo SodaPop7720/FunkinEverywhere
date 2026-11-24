@@ -235,6 +235,8 @@ class BaseSprite
         float getHeight();
         float getAtlasMaxHeight() const;
 
+        void loadSprite(const std::string& path, const std::string& type);
+
         void update(float elapsed);
         virtual void render();
 
@@ -310,6 +312,8 @@ class FunkinSprite
     public:
         FunkinSprite(const std::string& path, const std::string& type = "none");
         virtual ~FunkinSprite() = default;
+
+        void loadSprite(const std::string& path, const std::string& type);
 
         void update(float elapsed);
         void render();

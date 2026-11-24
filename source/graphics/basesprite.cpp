@@ -642,6 +642,11 @@ BaseSprite::~BaseSprite()
     
 }
 
+void BaseSprite::loadSprite(const std::string& path, const std::string& type) 
+{
+    for (auto& child : children) child -> loadSprite(path, type);
+}
+
 void BaseSprite::render() 
 {
     for (auto& child : children) child -> render();
@@ -742,6 +747,11 @@ FunkinSprite::FunkinSprite(const std::string& path, const std::string& type)
     #if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
     sprite = std::make_unique<SDL3Sprite>(path, type);
     #endif
+}
+
+void FunkinSprite::loadSprite(const std::string& path, const std::string& type)
+{
+    sprite -> loadSprite(path, type);
 }
 
 void FunkinSprite::update(float elapsed)

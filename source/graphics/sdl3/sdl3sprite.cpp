@@ -60,7 +60,7 @@ static float applyColorTransform(float value, float multiplier, float offset)
     return std::clamp(value * multiplier + offset / 255.0f, 0.0f, 1.0f);
 }
 
-void SDL3Sprite::create(const std::string& path, const std::string& type)
+void SDL3Sprite::loadSprite(const std::string& path, const std::string& type)
 {
     auto mods = listDirectory("mods");
     modName = (mods && !mods -> empty()) ? (*mods)[0] : "none";
@@ -79,6 +79,11 @@ void SDL3Sprite::create(const std::string& path, const std::string& type)
 	}
 
 	SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+}
+
+void SDL3Sprite::create(const std::string& path, const std::string& type)
+{
+    loadSprite(path, type);
 }
 
 SDL3Sprite::SDL3Sprite(const std::string& path, const std::string& type)
